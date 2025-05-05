@@ -8,8 +8,8 @@ executionRoutes
     .route('/')
     .post(isLoggedIn, executeCode)
     
-executionRoutes
-    .route('/')
-    .post(isLoggedIn, executeCode)
+// executionRoutes
+//     .route('/')
+//     .post(isLoggedIn, executeCode) 
 
 export default executionRoutes

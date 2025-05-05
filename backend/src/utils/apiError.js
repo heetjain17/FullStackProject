@@ -5,9 +5,9 @@ class ApiError extends Error {
       errors = [],
     ) {
       super(message);
+      this.success = false;
       this.statusCode = statusCode;
       this.message = message;
-      this.success = false;
       this.errors = errors;
 
     }
@@ -19,10 +19,10 @@ class ApiSuccess {
       message,
       data
     ){
+      this.success = true,
       this.statusCode = statusCode,
       this.message = message,
-      this.data = data,
-      this.success = true
+      this.data = data
     }
 }
 export { ApiError, ApiSuccess};
