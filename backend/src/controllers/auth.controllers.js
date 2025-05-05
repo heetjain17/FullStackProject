@@ -3,10 +3,11 @@ import {db} from '../libs/db.js'
 import {UserRole} from '../generated/prisma/index.js'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+import { ApiError, ApiSuccess } from '../utils/apiError.js'
 
 dotenv.config()
 
-const registerUser = async(req, res) => {
+const registerUser = async(req, res, next) => {
     const {email, password, name} = req.body
 
     try {
@@ -17,19 +18,17 @@ const registerUser = async(req, res) => {
         })
 
         if(existingUser){
-            return res.status(400).json({
-                error:"User already exists"
-            })
+            return next(new ApiError(400, "User already exists"))
         }
         
-
+        // const token =  
         const hashedPassword = await bcrypt.hash(password , 10);
 
         const newUser = await db.user.create({
             data:{
-                email,
+                email: email,
                 password:hashedPassword,
-                name,
+                name: name,
                 role:UserRole.USER
             }
         })
@@ -47,29 +46,25 @@ const registerUser = async(req, res) => {
             maxAge:1000 * 60 * 60 * 24 * 7 // 7 days
         })
 
-        res.status(201).json({
-            success:true,
-            message:"User created successfully",
-            user:{
-                id:newUser.id,
-                email:newUser.email,
-                name:newUser.name,
-                role:newUser.role,
-                image:newUser.image
-            }
-        })
+        return res.status(200).json(
+            new ApiSuccess(201, "User created successfully", 
+                {
+                    email:newUser.email,
+                    name:newUser.name,
+                    role:newUser.role,
+                    image:newUser.image,
+                    id:newUser.id,
+                },
+        ))
 
     } catch (error) {
-            console.error("Error creating user:", error);
-            res.status(500).json({
-                error:"Error creating user"
-            })
+        console.error("Error creating user:", error);
+        next(new ApiError(500, "Error creating user", error))
     }
 }
 
-const loginUser = async(req, res) => {
-    const {email , password} = req.body;
-
+const loginUser = async(req, res, next) => {
+    const {email, password} = req.body;
     try {
         const user = await db.user.findUnique({
             where:{
@@ -78,9 +73,7 @@ const loginUser = async(req, res) => {
         })
 
         if(!user){
-            return res.status(401).json({
-                error:"User not found"
-            })
+            return next(new ApiError(404, "User not found"))
         }
 
         const isMatch = await bcrypt.compare(password , user.password);
@@ -101,29 +94,25 @@ const loginUser = async(req, res) => {
             secure:process.env.NODE_ENV !== "development",
             maxAge:1000 * 60 * 60 * 24 * 7 // 7 days
         })
-
-        res.status(200).json({
-            success:true,
-            message:"User Logged in successfully",
-            user:{
-                id:user.id,
-                email:user.email,
-                name:user.name,
-                role:user.role,
-                image:user.image
-            }
-        })
-
         
+        return res.status(200).json(
+            new ApiSuccess(200, "User Logged in successfully", 
+                {
+                    email:user.email,
+                    name:user.name,
+                    role:user.role,
+                    image:user.image,
+                    id:user.id,
+                },
+        ))
+
     } catch (error) {
         console.error("Error creating user:", error);
-        res.status(500).json({
-            error:"Error logging in user"
-        })
+        next(new ApiError(500, "Error logging in user", error))
     }
 }
 
-const logoutUser = async(req, res) => {
+const logoutUser = async(req, res, next) => {
     try {
         res.clearCookie("jwt" , {
             httpOnly:true,
@@ -131,30 +120,24 @@ const logoutUser = async(req, res) => {
             secure:process.env.NODE_ENV !== "development",
         })
 
-        res.status(200).json({
-            success:true,
-            message:"User logged out successfully"
-        })
+        return res.status(200).json(
+            new ApiSuccess(200, "User logged out successfully")
+        )
+       
     } catch (error) {
         console.error("Error logging out user:", error);
-        res.status(500).json({
-            error:"Error logging out user"
-        })
+        next(new ApiError(500, "Error logging out user", error))
     }
 }
 
-const checkUser = async(req, res) => {
+const checkUser = async(req, res, next) => {
     try {
-        res.status(200).json({
-            success:true,
-            message:"User authenticated successfully",
-            user:req.user
-        });
+        return res.status(200).json(
+            new ApiSuccess(200, "User authenticated successfully")
+        )          
     } catch (error) {
         console.error("Error checking user:", error);
-        res.status(500).json({
-            error:"Error checking user"
-        })
+        next(new ApiError(500, "Error checking user", error))
     }
 }
 

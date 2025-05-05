@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: haaland
+      POSTGRES_PASSWORD: manchesterCity # NO EMPTY PASSWORDS
+      POSTGRES_DB: postgres
+      POSTGRES_INITDB_ARGS: "--auth-host=md5" # Critical for password auth
+    ports:
+      - "5433:5432" # Using non-standard port
+    volumes:
+      - type: volume
+        source: pg_data
+        target: /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U haaland"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pg_data:
+    driver: local
