@@ -7,9 +7,5 @@ const executionRoutes = express.Router()
 executionRoutes
     .route('/')
     .post(isLoggedIn, executeCode)
-    
-// executionRoutes
-//     .route('/')
-//     .post(isLoggedIn, executeCode) 
 
 export default executionRoutes
