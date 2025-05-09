@@ -1,38 +1,34 @@
-import express from 'express'
-import { isLoggedIn, checkAdmin } from '../middleware/auth.middleware.js'
+import express from 'express';
+import { isLoggedIn, checkAdmin } from '../middleware/auth.middleware.js';
 import {
     createProblem,
     getAllProblems,
     getProblemsById,
     updateProblem,
     deleteProblem,
-    getAllProblemsSolvedByUser
-} from '../controllers/problem.controllers.js'
+    getAllProblemsSolvedByUser,
+} from '../controllers/problem.controllers.js';
 
 const problemRoutes = express.Router();
 
 problemRoutes
     .route('/create-problem')
-    .post(isLoggedIn, checkAdmin, createProblem)
+    .post(isLoggedIn, checkAdmin, createProblem);
 
-problemRoutes
-    .route('/get-all-problems')
-    .get(isLoggedIn, getAllProblems)
+problemRoutes.route('/get-all-problems').get(isLoggedIn, getAllProblems);
 
-problemRoutes
-    .route('/get-problem/:id')
-    .get(isLoggedIn, getProblemsById)
+problemRoutes.route('/get-problem/:id').get(isLoggedIn, getProblemsById);
 
 problemRoutes
     .route('/update-problem/:id')
-    .put(isLoggedIn, checkAdmin, updateProblem)
+    .put(isLoggedIn, checkAdmin, updateProblem);
 
 problemRoutes
     .route('/delete-problem/:id')
-    .delete(isLoggedIn, checkAdmin, deleteProblem)
+    .delete(isLoggedIn, checkAdmin, deleteProblem);
 
 problemRoutes
     .route('/get-solved-problems')
-    .get(isLoggedIn, getAllProblemsSolvedByUser)
+    .get(isLoggedIn, getAllProblemsSolvedByUser);
 
-export default problemRoutes
+export default problemRoutes;
