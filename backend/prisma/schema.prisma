@@ -33,6 +33,15 @@ model User {
   role     UserRole @default(USER)
   password String
 
+  isEmailVerified         Boolean   @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
+
+  refreshToken String?
+
+  forgotPasswordToken  String?
+  forgotPasswordExpiry DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

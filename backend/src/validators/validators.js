@@ -39,4 +39,24 @@ const registerUserValidator = () => {
     ];
 };
 
-export { registerUserValidator };
+const forgotPasswordValidator = () => {
+    return [
+        body('newPassword')
+            .notEmpty()
+            .withMessage('Password is required')
+            .isLength({ min: 8 })
+            .withMessage('Password must be at least 8 characters long')
+            .isLength({ max: 128 })
+            .withMessage('Password must be less than 128 characters')
+            .matches(/[a-z]/)
+            .withMessage('Password must contain atleast one lowercase letter')
+            .matches(/[A-Z]/)
+            .withMessage('Password must contain atleast one uppercase letter')
+            .matches(/[0-9]/)
+            .withMessage('Password must contain atleast one number')
+            .matches(/[^a-zA-Z0-9]/)
+            .withMessage('Password must contain atleast one special character'),
+    ];
+};
+
+export { registerUserValidator, forgotPasswordValidator };
