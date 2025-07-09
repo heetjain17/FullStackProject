@@ -82,7 +82,7 @@ const registerUser = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const token = crypto.randomBytes(32).toString('hex');
-    const tokenExpiry = new Date(Date.now());
+    const tokenExpiry = new Date(Date.now()+24*60*60*1000); // 24 hours
 
     const newUser = await db.user.create({
       data: {
@@ -140,9 +140,23 @@ const verifyUser = async (req, res, next) => {
       return next(new ApiError(404, 'User not found'));
     }
 
-    const user = await db.user.updateMany({
+    const user = await db.user.findFirst({
       where: {
         emailVerificationToken: token,
+      },
+    });
+
+    if (!user) {
+      return next(new ApiError(404, 'User not found'));
+    }
+
+    if(user.emailVerificationExpiry < new Date(Date.now())){
+      return next(new ApiError(401, 'Request email verification again'));
+    }
+
+    await db.user.update({
+      where: {
+        id: user.id,
       },
       data: {
         isEmailVerified: true,
@@ -150,10 +164,6 @@ const verifyUser = async (req, res, next) => {
         emailVerificationExpiry: null,
       },
     });
-
-    if (user.count === 0) {
-      return next(new ApiError(404, 'User not found'));
-    }
 
     return res
       .status(200)
@@ -562,7 +572,7 @@ const forgotPasswordRequest = async (req, res, next) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const tokenExpiry = Date.now() + 4 * 60 * 60 * 1000;
+    const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000); // 4 hours
 
     const newUser = await db.user.update({
       where: {
@@ -592,6 +602,8 @@ const forgotPasswordRequest = async (req, res, next) => {
 // pending
 const resetPassword = async (req, res, next) => {
   try {
+    
+
     return res
       .status(200)
       .json(new ApiSuccess(200, 'reset password successful'));

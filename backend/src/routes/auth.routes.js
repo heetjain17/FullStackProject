@@ -50,7 +50,7 @@ authRoutes.route('/github/callback').get(githubOAuthCallback);
 
 authRoutes
   .route('/forgotPasswordRequest')
-  .post(forgotPasswordValidator(), validate, forgotPasswordRequest);
+  .post(forgotPasswordRequest);
 
 authRoutes.route('/resetPassword/:token').post(resetPassword);
 
