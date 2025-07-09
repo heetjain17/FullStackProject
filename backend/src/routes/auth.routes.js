@@ -56,7 +56,7 @@ authRoutes.route('/resetPassword/:token').post(resetPassword);
 
 authRoutes
   .route('/changePassword')
-  .post(forgotPasswordValidator(), validate, changePassword);
+  .post(isLoggedIn, forgotPasswordValidator(), validate, changePassword);
 
 authRoutes.route('/profile').put(isLoggedIn, updateProfile);
 

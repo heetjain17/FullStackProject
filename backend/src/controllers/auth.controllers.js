@@ -557,7 +557,7 @@ const githubOAuthCallback = async (req, res, next) => {
     next(new ApiError(500, 'Github OAuth callback failed: ', error));
   }
 };
-// pending
+// tested
 const forgotPasswordRequest = async (req, res, next) => {
   const { email } = req.body;
   try {
@@ -571,10 +571,14 @@ const forgotPasswordRequest = async (req, res, next) => {
       return next(new ApiError(404, 'User not found'));
     }
 
+    if(user.forgotPasswordExpiry && user.forgotPasswordExpiry > new Date(Date.now())){
+      return next(new ApiError(401, 'Email already sent. Please wait or check spam'))
+    }
+
     const token = crypto.randomBytes(32).toString('hex');
     const tokenExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000); // 4 hours
 
-    const newUser = await db.user.update({
+    await db.user.update({
       where: {
         email: email,
       },
@@ -584,12 +588,12 @@ const forgotPasswordRequest = async (req, res, next) => {
       },
     });
 
-    const resetPasswordUrl = `${process.env.BASE_URL}/api/v1/auth/resetPassword/${newUser.forgotPasswordToken}`;
+    const resetPasswordUrl = `${process.env.BASE_URL}/api/v1/auth/resetPassword/${token}`;
 
     await sendMail({
-      email: newUser.email,
+      email: user.email,
       subject: 'Reset password',
-      mailGenContent: forgotPasswordContent(newUser.name, resetPasswordUrl),
+      mailGenContent: forgotPasswordContent(user.name, resetPasswordUrl),
     });
     return res
       .status(200)
@@ -599,10 +603,43 @@ const forgotPasswordRequest = async (req, res, next) => {
     next(new ApiError(500, 'Forgot password request failed:', error));
   }
 };
-// pending
+// tested
 const resetPassword = async (req, res, next) => {
+  const {token} = req.params
+  const {newPassword} = req.body
   try {
+    const user = await db.user.findFirst({
+      where: {
+        forgotPasswordToken: token
+      }
+    })
+
+    if (!user) {
+      return next(new ApiError(404, 'User not found'));
+    }
+
+    if(user.forgotPasswordExpiry < new Date(Date.now())){
+      return next(new ApiError(401, 'Request again link expired'));
+    }
     
+    const isMatch = await bcrypt.compare(newPassword, user.password);
+
+    if (isMatch) {
+      return next(new ApiError(400, 'Your new password cannot be same as old'));
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.user.update({
+      where: {
+        id: user.id
+      },
+      data:{
+        password: hashedPassword,
+        forgotPasswordToken: null,
+        forgotPasswordExpiry: null
+      }
+    })
 
     return res
       .status(200)
@@ -612,15 +649,43 @@ const resetPassword = async (req, res, next) => {
     next(new ApiError(500, 'reset password failed:', error));
   }
 };
-// pending
+// tested
 const changePassword = async (req, res, next) => {
+  const {oldPassword, newPassword} = req.body
   try {
+    const user = await db.user.findUnique({
+      where: {
+        id: req.user.id 
+      },
+    }) 
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return next(new ApiError(400, 'Invalid credentials'));
+    }
+
+    if(oldPassword === newPassword){
+      return next(new ApiError(400, 'Your new password cannot be same as old'));
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        password: hashedPassword
+      }
+    })
+
     return res
       .status(200)
-      .json(new ApiSuccess(200, 'Verification Email sent again'));
+      .json(new ApiSuccess(200, 'Password changed successfully'));
   } catch (error) {
-    console.error('Resend email verification failed:', error);
-    next(new ApiError(500, 'Resend email verification failed:', error));
+    console.error('passowrd change failed:', error);
+    next(new ApiError(500, 'passowrd change failed:', error));
   }
 };
 // tested
