@@ -13,16 +13,16 @@ dotenv.config();
 const app = express();
 
 app.use(
-    cors({
-        origin: 'http://localhost:5173',
-        credentials: true,
-    })
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
 
 app.get('/', () => {
-    console.log(`Hello guys welcum to LeetLab 🔥`);
+  console.log(`Hello guys welcum to LeetLab 🔥`);
 });
 
 app.use('/api/v1/auth', authRoutes);
@@ -32,5 +32,5 @@ app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/playlist', playlistRoutes);
 
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on 8080`);
+  console.log(`Server is running on 8080`);
 });

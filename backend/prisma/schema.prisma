@@ -31,7 +31,8 @@ model User {
   name     String?
   email    String   @unique
   role     UserRole @default(USER)
-  password String
+  password String?
+  provider String   @default("CREDENTAILS")
 
   isEmailVerified         Boolean   @default(false)
   emailVerificationToken  String?
