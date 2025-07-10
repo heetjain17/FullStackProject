@@ -37,12 +37,16 @@ const createProblem = async (req, res, next) => {
         expected_output: output,
       }));
 
+      // contains token for each set of {input, output}
       const submissionResults = await submitBatch(submissions);
 
+      // extracting tokens from array of objects
       const tokens = submissionResults.map((res) => res.token);
 
+      // gets the outputs using given tokens
       const results = await pollBatchResults(tokens);
 
+      // checking whether each testcase is cleared
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
         if (result.status.id !== 3) {

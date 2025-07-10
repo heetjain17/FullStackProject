@@ -33,12 +33,22 @@ export const pollBatchResults = async (tokens) => {
         params: {
           tokens: tokens.join(','),
           base64_encoded: false,
+          // fields:
         },
       }
     );
 
+    // extracting data from obj
     const results = data.submissions;
 
+    // 1 - in queue
+    // 2 - processing
+    // 3 - accepted
+    // 4 - incorrect
+    // 5 - time limit exceeded
+    // .... errors in code
+
+    // make sures that program is run completely for each result
     const isAllDone = results.every(
       // r => r.status.id !== 1 && r.status.id !== 2
       (r) => r.status.id > 2

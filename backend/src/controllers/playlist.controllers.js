@@ -22,7 +22,7 @@ const createPlayList = async (req, res, next) => {
 
 const getAllListDetails = async (req, res, next) => {
   try {
-    const playlists = await db.findMany({
+    const playlists = await db.playlist.findMany({
       where: {
         userId: req.user.id,
       },
@@ -47,7 +47,7 @@ const getAllListDetails = async (req, res, next) => {
 const getPlayListDetails = async (req, res, next) => {
   const { playlistId } = req.params;
   try {
-    const playlist = await db.findMany({
+    const playlist = await db.playlist.findMany({
       where: {
         id: playlistId,
         userId: req.user.id,
@@ -79,18 +79,19 @@ const getPlayListDetails = async (req, res, next) => {
 const addProblemToPlaylist = async (req, res, next) => {
   const { playlistId } = req.params;
   const { problemIds } = req.body;
-
+  
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
       return next(new ApiError(404, 'Invalid or missing problems'));
     }
 
-    const problemsInPlaylist = await db.problemsInPlaylist.createMany({
+    const problemsInPlaylist = await db.problemInPlaylist.createMany({
       data: problemIds.map((problemId) => ({
-        playlistId,
-        problemId,
+        playListId: playlistId,
+        problemId: problemId,
       })),
     });
+
     res
       .status(201)
       .json(
@@ -134,9 +135,9 @@ const removeProblemFromPlaylist = async (req, res, next) => {
       return next(new ApiError(404, 'Invalid or missing problems'));
     }
 
-    const deletedProblem = await db.problemsInPlaylist.deleteMany({
+    const deletedProblem = await db.problemInPlaylist.deleteMany({
       where: {
-        playlistId,
+        playListId: playlistId,
         problemId: {
           in: problemIds,
         },
@@ -149,7 +150,7 @@ const removeProblemFromPlaylist = async (req, res, next) => {
         new ApiSuccess(
           200,
           'problem deleted from playlist successfully',
-          deletePlayList
+          deletedProblem
         )
       );
   } catch (error) {

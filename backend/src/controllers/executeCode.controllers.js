@@ -5,6 +5,7 @@ import {
   submitBatch,
 } from '../libs/judge0.lib.js';
 import { ApiError, ApiSuccess } from '../utils/apiError.js';
+
 const executeCode = async (req, res, next) => {
   const { source_code, language_id, stdin, expected_outputs, problemId } =
     req.body;
@@ -31,10 +32,11 @@ const executeCode = async (req, res, next) => {
 
     const results = await pollBatchResults(tokens);
 
-    // console.log(`Results:`);
-    // console.log(results);
+    console.log(`Results:`);
+    console.log(results);
 
     let allPassed = true;
+
     const detailedResults = results.map((result, i) => {
       const stdout = result.stdout?.trim();
       const expected_output = expected_outputs[i]?.trim();
@@ -43,6 +45,12 @@ const executeCode = async (req, res, next) => {
       if (!passed) {
         allPassed = false;
       }
+
+      console.log(`Testcase #${i+1}`);
+      console.log(`Input #${stdin[i]}`);
+      console.log(`Expected output for testcase ${expected_output}`);
+      console.log(`Actual output ${stdout}`);
+      console.log(`Matched: ${passed}`);
 
       return {
         testCase: i + 1,
@@ -54,16 +62,11 @@ const executeCode = async (req, res, next) => {
         status: result.status.description,
         memory: result.memory ? `${result.memory} KB` : undefined,
         time: result.time ? `${result.time} s` : null,
-      };
-      // console.log(`Testcase #${i+1}`);
-      // console.log(`Input #${stdin[i]}`);
-      // console.log(`Expected output for testcase ${expected_output}`);
-      // console.log(`Actual output ${stdout}`);
+      }
 
-      // console.log(`Matched: ${passed}`);
     });
 
-    // console.log(detailedResults);
+    console.log(detailedResults);
 
     // storing submissions in db
     const submission = await db.submission.create({

@@ -82,7 +82,7 @@ const registerUser = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const token = crypto.randomBytes(32).toString('hex');
-    const tokenExpiry = new Date(Date.now()+24*60*60*1000); // 24 hours
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const newUser = await db.user.create({
       data: {
@@ -150,7 +150,7 @@ const verifyUser = async (req, res, next) => {
       return next(new ApiError(404, 'User not found'));
     }
 
-    if(user.emailVerificationExpiry < new Date(Date.now())){
+    if (user.emailVerificationExpiry < new Date(Date.now())) {
       return next(new ApiError(401, 'Request email verification again'));
     }
 
@@ -571,8 +571,13 @@ const forgotPasswordRequest = async (req, res, next) => {
       return next(new ApiError(404, 'User not found'));
     }
 
-    if(user.forgotPasswordExpiry && user.forgotPasswordExpiry > new Date(Date.now())){
-      return next(new ApiError(401, 'Email already sent. Please wait or check spam'))
+    if (
+      user.forgotPasswordExpiry &&
+      user.forgotPasswordExpiry > new Date(Date.now())
+    ) {
+      return next(
+        new ApiError(401, 'Email already sent. Please wait or check spam')
+      );
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -605,23 +610,23 @@ const forgotPasswordRequest = async (req, res, next) => {
 };
 // tested
 const resetPassword = async (req, res, next) => {
-  const {token} = req.params
-  const {newPassword} = req.body
+  const { token } = req.params;
+  const { newPassword } = req.body;
   try {
     const user = await db.user.findFirst({
       where: {
-        forgotPasswordToken: token
-      }
-    })
+        forgotPasswordToken: token,
+      },
+    });
 
     if (!user) {
       return next(new ApiError(404, 'User not found'));
     }
 
-    if(user.forgotPasswordExpiry < new Date(Date.now())){
+    if (user.forgotPasswordExpiry < new Date(Date.now())) {
       return next(new ApiError(401, 'Request again link expired'));
     }
-    
+
     const isMatch = await bcrypt.compare(newPassword, user.password);
 
     if (isMatch) {
@@ -632,14 +637,14 @@ const resetPassword = async (req, res, next) => {
 
     await db.user.update({
       where: {
-        id: user.id
+        id: user.id,
       },
-      data:{
+      data: {
         password: hashedPassword,
         forgotPasswordToken: null,
-        forgotPasswordExpiry: null
-      }
-    })
+        forgotPasswordExpiry: null,
+      },
+    });
 
     return res
       .status(200)
@@ -651,13 +656,13 @@ const resetPassword = async (req, res, next) => {
 };
 // tested
 const changePassword = async (req, res, next) => {
-  const {oldPassword, newPassword} = req.body
+  const { oldPassword, newPassword } = req.body;
   try {
     const user = await db.user.findUnique({
       where: {
-        id: req.user.id 
+        id: req.user.id,
       },
-    }) 
+    });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
@@ -665,7 +670,7 @@ const changePassword = async (req, res, next) => {
       return next(new ApiError(400, 'Invalid credentials'));
     }
 
-    if(oldPassword === newPassword){
+    if (oldPassword === newPassword) {
       return next(new ApiError(400, 'Your new password cannot be same as old'));
     }
 
@@ -673,12 +678,12 @@ const changePassword = async (req, res, next) => {
 
     await db.user.update({
       where: {
-        id: user.id
+        id: user.id,
       },
       data: {
-        password: hashedPassword
-      }
-    })
+        password: hashedPassword,
+      },
+    });
 
     return res
       .status(200)

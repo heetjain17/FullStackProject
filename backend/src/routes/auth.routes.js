@@ -48,9 +48,7 @@ authRoutes.route('/github').get(githubOAuthRedirect);
 
 authRoutes.route('/github/callback').get(githubOAuthCallback);
 
-authRoutes
-  .route('/forgotPasswordRequest')
-  .post(forgotPasswordRequest);
+authRoutes.route('/forgotPasswordRequest').post(forgotPasswordRequest);
 
 authRoutes.route('/resetPassword/:token').post(resetPassword);
 
