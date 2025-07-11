@@ -101,7 +101,7 @@ const registerUser = async (req, res, next) => {
       },
     });
 
-    if (user.provider === 'CREDENTIALS' && !user.password) {
+    if (newUser.provider === 'CREDENTIALS' && !newUser.password) {
       throw new ApiError(500, 'User account is invalid — missing password');
     }
 
@@ -176,6 +176,7 @@ const verifyUser = async (req, res, next) => {
 // tested
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
+
   try {
     const user = await db.user.findUnique({
       where: {
@@ -188,7 +189,7 @@ const loginUser = async (req, res, next) => {
     }
 
     if (!user.isEmailVerified) {
-      return next(new ApiError(400, 'Verify your email first'));
+      return next(new ApiError(401, 'Verify your email first'));
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

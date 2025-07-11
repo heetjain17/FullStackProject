@@ -139,7 +139,7 @@ const LoginPage = () => {
 
       {/* Right Side - Image/Pattern */}
       <AuthImagePattern
-        title={'Welcome back'}
+        title={'Welcome back to DexCode'}
         subtitle={
           "Sign in to continue your journey with us. Don't have an account? Create one now"
         }

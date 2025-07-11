@@ -8,9 +8,27 @@ import AuthImagePattern from '../components/AuthImagePattern';
 import { useAuthStore } from '../store/useAuthStore';
 
 const signUpSchema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'Password must be atleast of 6 characters'),
-  name: z.string().min(3, 'Name must be atleast 3 characters')
+  email: z.string().toLowerCase().email('Enter a valid email'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .max(128, 'Password cannot exceed 128 characters')
+    .refine(value => /[A-Z]/.test(value), {
+      message: 'Password must contain at least one uppercase letter'
+    })
+    .refine(value => /[a-z]/.test(value), {
+      message: 'Password must contain at least one lowercase letter'
+    })
+    .refine(value => /[0-9]/.test(value), {
+      message: 'Password must contain at least one number'
+    })
+    .refine(value => /[^A-Za-z0-9]/.test(value), {
+      message: 'Password must contain at least one special character'
+    }),
+  name: z
+    .string()
+    .min(3, 'Name must be atleast 3 characters')
+    .max(30, 'Name cannot exceed 30 characters')
 });
 
 const SignUpPage = () => {
@@ -31,9 +49,9 @@ const SignUpPage = () => {
       await signup(data);
       console.log('signUp data ', data);
     } catch (error) {
-      console.error('SignUP failed: ', error);
+      console.error('SignUp     failed: ', error);
     }
-  };
+  }; 
 
   return (
     <div className="h-screen grid lg:grid-cols-2">
@@ -68,7 +86,7 @@ const SignUpPage = () => {
                   className={`input input-bordered w-full pl-10 ${
                     errors.name ? 'input-error' : ''
                   }`}
-                  placeholder="John Doe"
+                  placeholder="Dexter Morgan"
                 />
               </div>
               {errors.name && (
@@ -164,7 +182,7 @@ const SignUpPage = () => {
 
       {/* Right Side - Image/Pattern */}
       <AuthImagePattern
-        title={'Welcome to our platform'}
+        title={'Welcome to DexCode'}
         subtitle={'Sign up to access our platform and start using services.'}
       />
     </div>

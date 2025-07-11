@@ -65,7 +65,19 @@ const problemSchema = z.object({
 const CreateProblemForm = () => {
   const [sampleType, setSampleType] = useState('DP');
   const navigation = useNavigate();
-  const {register, control, handleSubmit, reset, formState:{errors}} = useForm({
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit = async value => {
+    console.log(value);
+  };
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
     resolver: zodResolver(problemSchema),
     defaultValues: {
       testCases: [{ input: '', output: '' }],
@@ -553,11 +565,6 @@ public class Main {
     }
   };
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const onSubmit = async value => {
-    console.log(value);
-  };
   const loadSampleData = () => {
     const sampleData = sampleType === 'DP' ? sampledpData : sampleStringProblem;
 
@@ -582,7 +589,7 @@ public class Main {
                 <button
                   type="button"
                   className={`btn join-item ${sampleType === 'DP' ? 'btn-active' : ''}`}
-                  onClick={() => setSampleType('array')}
+                  onClick={() => setSampleType('DP')}
                 >
                   DP Problem
                 </button>

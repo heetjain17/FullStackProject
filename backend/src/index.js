@@ -31,6 +31,18 @@ app.use('/api/v1/execute-code', executionRoutes);
 app.use('/api/v1/submission', submissionRoutes);
 app.use('/api/v1/playlist', playlistRoutes);
 
+// Global error handler middleware
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    errors: err.errors || [],
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+  });
+});
+
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on 8080`);
 });
