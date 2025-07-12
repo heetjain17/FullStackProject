@@ -51,7 +51,7 @@ const SignUpPage = () => {
     } catch (error) {
       console.error('SignUp     failed: ', error);
     }
-  }; 
+  };
 
   return (
     <div className="h-screen grid lg:grid-cols-2">
