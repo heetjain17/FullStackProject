@@ -29,8 +29,8 @@ export const useSubmissionStore = create(set => ({
       const res = await axiosInstance.get(`/submission/get-submission/${problemId}`);
 
       set({ submissions: res.data.data });
-      console.log('submission by problemId: ',res.data.data);
-      
+      console.log('submission by problemId: ', res.data.data);
+
       toast.success(res.data.message);
     } catch (error) {
       console.log('Error getting all submissions ', error);

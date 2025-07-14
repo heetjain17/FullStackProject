@@ -1,16 +1,26 @@
 import React, { useState, useMemo } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from 'lucide-react';
+import { Bookmark, PencilIcon, Trash, TrashIcon, Plus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useActionStore } from '../store/useActionStore';
+import { usePlaylistStore } from '../store/usePlaylistStore';
+import AddToPlaylist from './AddToPlaylist';
+import CreatePlaylistModal from './CreatePlaylistModal';
 
 const ProblemTable = problems => {
   problems = problems.problems;
 
   const { authUser } = useAuthStore();
+  const { onDeleteProblem, isDeletingProblem } = useActionStore();
+  const { createPlaylist } = usePlaylistStore()
+
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('ALL');
   const [selectedTag, setSelectedTag] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false)
+  const [selectedProblemId, setSelectedProblemId] = useState(null)
 
   const difficulties = ['EASY', 'MEDIUM', 'HARD'];
 
@@ -34,6 +44,7 @@ const ProblemTable = problems => {
       );
   }, [problems, search, difficulty, selectedTag]);
 
+  // Pagination handling part
   const itemsPerPage = 5;
   const totalPages = Math.ceil(filteredProblems.length / itemsPerPage);
   const paginatedProblems = useMemo(() => {
@@ -43,14 +54,25 @@ const ProblemTable = problems => {
     );
   }, [filteredProblems, currentPage]);
 
-  const handleDelete = id => {};
-  const handleAddToPlaylist = () => {};
+  const handleDelete = id => {
+    onDeleteProblem(id);
+  };
+
+  const handleAddToPlaylist = problemId => {
+    setSelectedProblemId(problemId)
+    setIsAddToPlaylistModalOpen(true)
+  };
+
+  const handleCreatePlaylist = async data => {
+    await createPlaylist(data)
+  }
+
   return (
     <div className="w-full max-w-6xl mx-auto mt-10">
       {/* Header with Create Playlist Button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Problems</h2>
-        <button className="btn btn-primary gap-2" onClick={() => {}}>
+        <button className="btn btn-primary gap-2" onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4" />
           Create Playlist
         </button>
@@ -160,7 +182,11 @@ const ProblemTable = problems => {
                               onClick={() => handleDelete(problem.id)}
                               className="btn btn-sm btn-error"
                             >
-                              <TrashIcon className="w-4 h-4 text-white" />
+                              {isDeletingProblem ? (
+                                <Loader2 className="animate-spin h-4 w-4" />
+                              ) : (
+                                <TrashIcon className="w-4 h-4 text-white" />
+                              )}
                             </button>
                             <button disabled className="btn btn-sm btn-warning">
                               <PencilIcon className="w-4 h-4 text-white" />
@@ -210,6 +236,18 @@ const ProblemTable = problems => {
           Next
         </button>
       </div>
+
+      <CreatePlaylistModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSubmit={handleCreatePlaylist}
+      />
+
+      <AddToPlaylist 
+        isOpen={isAddToPlaylistModalOpen}
+        onClose={() => setIsAddToPlaylistModalOpen(false)}
+        problemId={selectedProblemId}
+      />
     </div>
   );
 };

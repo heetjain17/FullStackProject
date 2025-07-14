@@ -96,7 +96,7 @@ const ProblemPage = () => {
   }
 
   console.log('submissions: ', submissions);
-  
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'description':

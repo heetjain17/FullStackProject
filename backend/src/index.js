@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/', () => {
-  console.log(`Hello guys welcum to LeetLab 🔥`);
+  console.log(`Hello Welcome to DexCode 🔪🩸`);
 });
 
 app.use('/api/v1/auth', authRoutes);

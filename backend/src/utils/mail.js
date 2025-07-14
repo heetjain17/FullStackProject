@@ -27,7 +27,7 @@ const sendMail = async (options) => {
   });
 
   const mail = {
-    from: 'Leet.Admin@gmail.com', // sender address
+    from: 'DexCode.Admin@gmail.com', // sender address
     to: options.email, // list of receivers
     subject: options.subject, // Subject line
     text: emailText, // plain text body
@@ -47,9 +47,9 @@ const emailVerificationContent = (username, verificationUrl) => {
   return {
     body: {
       name: username,
-      intro: "Welcome to Leetlab! We're very excited to have you on board.",
+      intro: "Welcome to DexCode! We're very excited to have you on board.",
       action: {
-        instructions: 'To get started with our Leetlab, please click here:',
+        instructions: 'To get started with our DexCode, please click here:',
         button: {
           color: '#22BC66',
           text: 'Verify your Email',

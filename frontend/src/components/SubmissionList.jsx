@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 
 const SubmissionList = ({ submissions, isLoading }) => {
-  
   const safeParse = data => {
     try {
       return JSON.parse(data);

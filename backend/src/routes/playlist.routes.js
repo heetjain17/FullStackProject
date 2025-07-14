@@ -11,7 +11,7 @@ import {
 
 const playlistRoutes = express.Router();
 
-playlistRoutes.route('/create-playlist').get(isLoggedIn, createPlayList);
+playlistRoutes.route('/create-playlist').post(isLoggedIn, createPlayList);
 
 playlistRoutes.route('/').get(isLoggedIn, getAllListDetails);
 
