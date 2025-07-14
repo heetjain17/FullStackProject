@@ -19,7 +19,7 @@ const executeCode = async (req, res, next) => {
     ) {
       return next(new ApiError(400, 'Invalid or missing testcases'));
     }
-
+    
     const submissions = stdin.map((input) => ({
       source_code,
       language_id,
@@ -32,9 +32,6 @@ const executeCode = async (req, res, next) => {
 
     const results = await pollBatchResults(tokens);
 
-    console.log(`Results:`);
-    console.log(results);
-
     let allPassed = true;
 
     const detailedResults = results.map((result, i) => {
@@ -46,11 +43,11 @@ const executeCode = async (req, res, next) => {
         allPassed = false;
       }
 
-      console.log(`Testcase #${i+1}`);
-      console.log(`Input #${stdin[i]}`);
-      console.log(`Expected output for testcase ${expected_output}`);
-      console.log(`Actual output ${stdout}`);
-      console.log(`Matched: ${passed}`);
+      // console.log(`Testcase #${i+1}`);
+      // console.log(`Input #${stdin[i]}`);
+      // console.log(`Expected output for testcase ${expected_output}`);
+      // console.log(`Actual output ${stdout}`);
+      // console.log(`Matched: ${passed}`);
 
       return {
         testCase: i + 1,
@@ -66,7 +63,7 @@ const executeCode = async (req, res, next) => {
 
     });
 
-    console.log(detailedResults);
+    // console.log(detailedResults);
 
     // storing submissions in db
     const submission = await db.submission.create({
