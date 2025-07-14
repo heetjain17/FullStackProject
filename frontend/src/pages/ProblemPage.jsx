@@ -20,22 +20,33 @@ import {
 import { useProblemStore } from '../store/useProblemStore';
 import { useExecutionStore } from '../store/useExecutionStore';
 import { getLanguageId } from '../lib/lang';
-import Submission from '../components/Submission'
+import Submission from '../components/Submission';
+import { useSubmissionStore } from '../store/useSubmissionStore';
+import SubmissionList from '../components/SubmissionList';
 
 const ProblemPage = () => {
   const { id } = useParams();
-  const submissionCount = 10;
+
   const { getProblemById, problem, isProblemLoading } = useProblemStore();
+  const { executeCode, submission, isExecuting } = useExecutionStore();
+  const {
+    submissions,
+    isLoading: isSubmissionLoading,
+    getAllSubmissions,
+    getSubmissionForProblem,
+    getSubmissionCountForProblem,
+    submissionCount
+  } = useSubmissionStore();
+
   const [code, setCode] = useState('description');
   const [activeTab, setActiveTab] = useState('description');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [testcases, setTestcases] = useState([]);
 
-  const {executeCode, submission, isExecuting} = useExecutionStore()
-
   useEffect(() => {
     getProblemById(id);
+    getSubmissionCountForProblem(id);
   }, [id]);
 
   useEffect(() => {
@@ -51,10 +62,26 @@ const ProblemPage = () => {
     }
   }, [problem, selectedLanguage]);
 
+  useEffect(() => {
+    if (activeTab === 'submissions' && id) getSubmissionForProblem(id);
+  }, [activeTab, id]);
+
   const handleLanguageChange = e => {
     const lang = e.target.value;
     setSelectedLanguage(lang);
     setCode(problem.codeSnippets?.[lang] || '');
+  };
+
+  const handleRunCode = e => {
+    e.preventDefault();
+    try {
+      const language_id = getLanguageId(selectedLanguage);
+      const stdin = problem.testcases.map(tc => tc.input);
+      const expected_outputs = problem.testcases.map(tc => tc.output);
+      executeCode(code, language_id, stdin, expected_outputs, id);
+    } catch (error) {
+      console.log('Error executing code', error);
+    }
   };
 
   if (isProblemLoading || !problem) {
@@ -68,6 +95,8 @@ const ProblemPage = () => {
     );
   }
 
+  console.log('submissions: ', submissions);
+  
   const renderTabContent = () => {
     switch (activeTab) {
       case 'description':
@@ -78,7 +107,7 @@ const ProblemPage = () => {
             {problem.examples && (
               <>
                 <h3 className="text-xl font-bold mb-4">Examples:</h3>
-                {console.log('problem.examples: ', problem.examples)}
+                {/* {console.log('problem.examples: ', problem.examples)} */}
                 {Object.entries(problem.examples).map(([lang, example], idx) => (
                   <div key={lang} className="bg-base-200 p-6 rounded-xl mb-6 font-mono">
                     <div className="mb-4">
@@ -124,10 +153,10 @@ const ProblemPage = () => {
             )}
           </div>
         );
-      // case 'submissions':
-      //   return (
-      //     <SubmissionsList submissions={submissions} isLoading={isSubmissionsLoading} />
-      //   );
+      case 'submissions':
+        return (
+          <SubmissionList submissions={submissions} isLoading={isSubmissionLoading} />
+        );
       case 'discussion':
         return (
           <div className="p-4 text-center text-base-content/70">No discussions yet</div>
@@ -151,24 +180,12 @@ const ProblemPage = () => {
     }
   };
 
-  const handleRunCode = e => {
-    e.preventDefault()
-    try {
-      const language_id = getLanguageId(selectedLanguage)
-      const stdin = problem.testcases.map(tc => tc.input)
-      const expected_outputs = problem.testcases.map(tc => tc.output)
-      executeCode(code, language_id, stdin, expected_outputs, id)
-    } catch (error) {
-      console.log('Error executing code', error);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-300 to-base-200 max-w-7xl w-full">
       {/* navbar */}
       <nav className="navbar bg-base-100 shadow-lg px-4">
         <div className="flex-1 gap-2">
-          <Link to={"/"} className="flex items-center gap-2 text-primary">
+          <Link to={'/'} className="flex items-center gap-2 text-primary">
             <Home className="w-6 h-6" />
             <ChevronRight className="w-4 h-4" />
           </Link>
@@ -177,11 +194,11 @@ const ProblemPage = () => {
             <div className="flex items-center gap-2 text-sm text-base-content/70 mt-5">
               <Clock className="w-4 h-4" />
               <span>
-                Updated{" "}
-                {new Date(problem.createdAt).toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
+                Updated{' '}
+                {new Date(problem.createdAt).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </span>
               <span className="text-base-content/30">•</span>
@@ -195,9 +212,7 @@ const ProblemPage = () => {
         </div>
         <div className="flex-none gap-4">
           <button
-            className={`btn btn-ghost btn-circle ${
-              isBookmarked ? "text-primary" : ""
-            }`}
+            className={`btn btn-ghost btn-circle ${isBookmarked ? 'text-primary' : ''}`}
             onClick={() => setIsBookmarked(!isBookmarked)}
           >
             <Bookmark className="w-5 h-5" />
@@ -210,7 +225,7 @@ const ProblemPage = () => {
             value={selectedLanguage}
             onChange={handleLanguageChange}
           >
-            {Object.keys(problem.codeSnippets || {}).map((lang) => (
+            {Object.keys(problem.codeSnippets || {}).map(lang => (
               <option key={lang} value={lang}>
                 {lang.charAt(0).toUpperCase() + lang.slice(1)}
               </option>
@@ -227,36 +242,34 @@ const ProblemPage = () => {
               <div className="tabs tabs-bordered">
                 <button
                   className={`tab gap-2 ${
-                    activeTab === "description" ? "tab-active" : ""
+                    activeTab === 'description' ? 'tab-active' : ''
                   }`}
-                  onClick={() => setActiveTab("description")}
+                  onClick={() => setActiveTab('description')}
                 >
                   <FileText className="w-4 h-4" />
                   Description
                 </button>
                 <button
                   className={`tab gap-2 ${
-                    activeTab === "submissions" ? "tab-active" : ""
+                    activeTab === 'submissions' ? 'tab-active' : ''
                   }`}
-                  onClick={() => setActiveTab("submissions")}
+                  onClick={() => setActiveTab('submissions')}
                 >
                   <Code2 className="w-4 h-4" />
                   Submissions
                 </button>
                 <button
                   className={`tab gap-2 ${
-                    activeTab === "discussion" ? "tab-active" : ""
+                    activeTab === 'discussion' ? 'tab-active' : ''
                   }`}
-                  onClick={() => setActiveTab("discussion")}
+                  onClick={() => setActiveTab('discussion')}
                 >
                   <MessageSquare className="w-4 h-4" />
                   Discussion
                 </button>
                 <button
-                  className={`tab gap-2 ${
-                    activeTab === "hints" ? "tab-active" : ""
-                  }`}
-                  onClick={() => setActiveTab("hints")}
+                  className={`tab gap-2 ${activeTab === 'hints' ? 'tab-active' : ''}`}
+                  onClick={() => setActiveTab('hints')}
                 >
                   <Lightbulb className="w-4 h-4" />
                   Hints
@@ -266,7 +279,7 @@ const ProblemPage = () => {
               <div className="p-6">{renderTabContent()}</div>
             </div>
           </div>
-          
+
           {/* editor & submit buttons*/}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body p-0">
@@ -283,11 +296,11 @@ const ProblemPage = () => {
                   language={selectedLanguage.toLowerCase()}
                   theme="vs-dark"
                   value={code}
-                  onChange={(value) => setCode(value || "")}
+                  onChange={value => setCode(value || '')}
                   options={{
                     minimap: { enabled: false },
                     fontSize: 20,
-                    lineNumbers: "on",
+                    lineNumbers: 'on',
                     roundedSelection: false,
                     scrollBeyondLastLine: false,
                     readOnly: false,
@@ -307,15 +320,13 @@ const ProblemPage = () => {
                     {!isExecuting && <Play className="w-4 h-4" />}
                     Run Code
                   </button>
-                  <button className="btn btn-success gap-2">
-                    Submit Solution
-                  </button>
+                  <button className="btn btn-success gap-2">Submit Solution</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* submissions & testcases */}
         <div className="card bg-base-100 shadow-xl mt-6">
           <div className="card-body">
